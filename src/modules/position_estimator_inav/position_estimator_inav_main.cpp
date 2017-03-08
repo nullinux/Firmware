@@ -1098,6 +1098,19 @@ int position_estimator_inav_thread_main(int argc, char *argv[])
 			accel_bias_corr[2] -= corr_vision[2][0] * w_z_vision_p * w_z_vision_p;
 		}
 
+		/* transform error vector from NED frame to body frame */
+		for (int i = 0; i < 3; i++) {
+			float c = 0.0f;
+
+			for (int j = 0; j < 3; j++) {
+				c += R(j, i) * accel_bias_corr[j];
+			}
+
+			if (PX4_ISFINITE(c)) {
+				acc_bias[i] += c * params.w_acc_bias * dt;
+			}
+		}
+
 		/* accelerometer bias correction for MOCAP (use buffered rotation matrix) */
 		accel_bias_corr[0] = 0.0f;
 		accel_bias_corr[1] = 0.0f;
